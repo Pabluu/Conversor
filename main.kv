@@ -1,0 +1,25 @@
+#:import MDFillRoundFlatIconButton kivymd.button.MDFillRoundFlatIconButton
+#:import MDIcon kivymd.button.MDIconButton
+
+<Manager>:
+    Init:
+        name: 'init'
+
+<Init>:
+
+    FloatLayout:
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba: [1,1,1,.9]
+            Rectangle:
+                pos: self.pos
+                size: self.size
+                source: 'Images/obra_prima.png'
+
+        MDFillRoundFlatIconButton:
+            text: 'Procurar por arquivo'
+            markup: True
+            icon: 'folder'
+            pos_hint: {'center_x': .5, 'center_y': .5}
+            on_release: app.file_manager_open()
