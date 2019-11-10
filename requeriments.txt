@@ -1,0 +1,8 @@
+rarfile
+tarfile
+reportlab
+PIL
+glob
+kivy
+kivymd
+threading
