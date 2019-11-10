@@ -18,140 +18,92 @@ Passo-a-passo (resumidamente)
 '''
 
 # IMPORTS
+from pathlib import Path
+from os import path as path_os
+from os import sep
 from rarfile import RarFile
 from tarfile import TarFile
 from zipfile import ZipFile
-from shutil import move, rmtree
-from pathlib import Path
-
-from os import listdir, rename, chdir, getcwd, sep
-from os import path as path_os
-
-from reportlab.pdfgen import canvas
+from shutil import rmtree, copyfile
 from glob import glob
-from PIL import Image
+import draw
+
+_ext = {'.cbr':'r.rar',
+        '.cbt':'t.tar',
+        '.cbz':'z.zip'}
+_obj = {'.rar': RarFile,
+        '.tar': TarFile,
+        '.zip': ZipFile}
+path_main = str(Path.cwd()) + sep + 'Conv' # path principal
+path_imagens = ''
 
 
-from pdb import set_trace
+def caminho_abs(arquivo):
+    '''Obtem o caminho absoluto do arquivo.'''
+    return str(Path(arquivo).absolute())
+
+def obter_nome_arquivo(arquivo):
+    '''Obtem o nome do arquivo'''
+
+    return path_os.basename(arquivo)
+
+def quebrar_arquivo(arquivo):
+    '''Retorna o nome e a extensao do arquivo.'''
+
+    return path_os.splitext(arquivo)
+
+def criar_novo_nome(stem, suffix):
+    '''cria um novo nome para o arquivo.'''
+    return path_main + sep + stem + _ext.get(suffix)
+
+def criar_pasta(pasta, nome):
+    local = pasta + sep + nome
+    Path(local).mkdir()
+
+    return local
+
+def renomear_arquivo(arquivo):
+    '''renomeia os arquivos.'''
+
+    #quebra o arquivo em nome e extensao
+    nome_arquivo, ext_arquivo = quebrar_arquivo(arquivo)
+    #cria um novo nome do arquivo
+    novo_nome = criar_novo_nome(nome_arquivo, ext_arquivo)
+    #renomeia o arquivo e ja o leva para outro diretorio
+    copyfile(arquivo, novo_nome)
+
+    return novo_nome
+
+def extrair_arquivo(arquivo):
+    '''Extrai o arquivo compactado.'''
+
+    # pegando a extensao
+    nome_arquivo, ext_arquivo = quebrar_arquivo(arquivo)
+    # nome do arquivos sem as pastas
+    nome_arquivo = path_os.basename(nome_arquivo)
+    # cria uma nova pasta     
+    pasta_referente = criar_pasta(path_main, nome_arquivo)
+    # obtendo o objeto referenciando o arquivo
+    obj_extract = _obj.get(ext_arquivo)
+    # extrair arquivo
+    obj_extract(arquivo).extractall(pasta_referente)
+
+    return pasta_referente
+
+def procurar_imagens(pasta):
+    '''Procura por imagens.'''
+
+    global path_imagens
+
+    ext_imagens = ['.jpg', '.png', '.jpeg']
+    for imagem in ext_imagens:
+        # set_trace()
+        return glob(f"{pasta + sep}*{imagem}")
 
 
-class Converter(object):
-
-    _ext = {'.cbr':'.rar',
-            '.cbt':'.tar',
-            '.cbz':'.zip',}
-
-    _obj = {'.rar': RarFile,
-            '.tar': TarFile,
-            '.zip': ZipFile}
-
-
-    def __init__(self, *files):
-        
-        # nome dos arquivos originais.
-        self.files_orig = list(files)
-
-        # nome dos arquivos pos renomeados.
-        self.files_ren = []
-
-        # local das imgs que serao inseridas.
-        self.directorys = []
-
-        # cria uma pasta.
-        Path('Conv').mkdir()
-
-        set_trace()
-
-        self.ChangeName(self.files_orig)
-
-        self.MoveFiles(self.files_ren)
-
-        chdir("Conv")
-
-        self.Extract(self.files_ren)
-
-    def ChangeName(self, files):
-        '''Muda o nome do arquivo conforme sua extenção.'''
-
-        for file in files:
-            try:
-                # nome e extensao do arquivo.
-                name_file, ext_file = path_os.splitext(file)
-
-                new_name = name_file + self._ext[ext_file]    
-
-                # renomeando o arquivo.
-                rename(file, new_name)
-
-                # os arquivos que foram renomeados
-                # serao add a variavel
-                self.files_ren.append(new_name)
-            except:
-                pass
-
-        return True
-
-    def MoveFiles(self, files):
-        '''Muda os arquivos de um diretorio para outro(Conv).'''
-
-        if files != []:
-            for file in files:
-                try:
-                    move(file, "Conv")
-                except Exception as er:
-                    print(er)
-
-        else:
-            exit("Nenhum arquivo a ser descompactado")
-
-
-    def Extract(self, file):
-        '''Extrai todos os arquivos conforme sua extenção.'''
-
-        for file in files:
-            name_file, ext_file = path_os.splitext(file)
-
-            #cria um diretorio para extracao
-            self.MakeDir(name_file)
-
-            # add todos os diretorios a uma variavel para quando for desenhar
-            self.directorys.append(path_os.abspath(name_file))
-
-            obj_extract = self._obj[ext_file]
-
-            # obtendo o objeto(rar, tar ou zip)
-            obj_extract = obj_extract(file)
-
-            # extraindo o arquivo.
-            obj_extract.extractall()
-
-        return True
-
-    def MakeDir(self, name):
-        '''Funcao que cria um diretorio'''
-
-        Path(name).mkdir()
-
-        return True
-
-
-    def Draw(self, path_imgs):
-        '''Desenha as imagens no arquivo .pdf.'''
-
-        #pdf.setPageSize(self.GetSize(img))
-
-
-    # def GetSize(self, imagem):
-    #     '''Retorna o tamanho da imagem(largura e altura).'''
-
-    #     img = Image.open(imagem)
-    #     return img.width, img.height
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     try:
         rmtree('Conv')
-    except FileNotFoundError:
-        pass
-
-    Converter('pablo.cbz', 'pablo.cbr')
+        Path(path_main).mkdir()
+    except FileNotFoundError as error:
+        Path(path_main).mkdir()
