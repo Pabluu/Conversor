@@ -1,7 +1,8 @@
 rarfile
+zipfile
 tarfile
 reportlab
-PIL
+pillow
 glob
 kivy
 kivymd
