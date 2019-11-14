@@ -3,7 +3,7 @@ from reportlab.pdfgen import canvas
 from os.path import basename, splitext
 
 
-def Draw(nome_pdf, titulo_pdf, imagens):
+def Draw(nome_arquivo, titulo_pdf, imagens):
     '''Desenha as imagens no arquivo .pdf.'''
 
     # cria um novo pdf
@@ -14,14 +14,14 @@ def Draw(nome_pdf, titulo_pdf, imagens):
     print("Inserindo as imagens")
     for img in imagens:        
         #aplicar um tamanho a pagina
-        pdf.setPageSize(GetSize(img))
+        pdf.setPageSize(TamanhoImagem(img))
         #desenhar a imagem em uma posicao x e y
         pdf.drawImage(img, 0,0)
         #criar uma nova pagina
         pdf.showPage()
 
     
-    pdf.setTitle(titulo_pdf) #titulo    
+    pdf.setTitle(titulo_arquivo) #titulo    
     pdf.save() # salvar
     
     print("Terminado.")
@@ -29,7 +29,7 @@ def Draw(nome_pdf, titulo_pdf, imagens):
     return True
 
 
-def GetSize(imagem):
+def TamanhoImagem(imagem):
     '''Retorna o tamanho da imagem(largura e altura).'''
 
     return Image.open(imagem).size
